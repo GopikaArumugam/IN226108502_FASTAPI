@@ -202,15 +202,12 @@ def get_bookings():
     return bookings
 
 
-# ------------------ DAY 6 (ADVANCED APIs) ------------------
-
+# ------------------ ADVANCED / FIXED ROUTES ------------------
 @app.get("/cars/search")
-def search_cars(name: Optional[str] = None):
+def search_cars(name: Optional[str] = Query(None, min_length=1)):
     result = cars
-
-    if name is not None:
+    if name:
         result = [car for car in result if name.lower() in car["name"].lower()]
-
     return result
 
 
@@ -221,20 +218,34 @@ def filter_by_brand(brand: str):
 
 @app.get("/cars/browse")
 def browse_cars(
-    name: Optional[str] = None,
+    name: Optional[str] = Query(None, min_length=1),
     sort: Optional[str] = None,
     page: int = 1,
     limit: int = 5
 ):
     result = cars
-
     if name:
         result = [car for car in result if name.lower() in car["name"].lower()]
-
     if sort == "price":
         result.sort(key=lambda x: x["price_per_day"])
-
+    elif sort == "name":
+        result.sort(key=lambda x: x["name"])
     start = (page - 1) * limit
     end = start + limit
-
     return result[start:end]
+
+
+# ------------------ VARIABLE ROUTES (last) ------------------
+@app.get("/cars/{car_id}")
+def get_car(car_id: int):
+    car = find_car(car_id)
+    if not car:
+        raise HTTPException(status_code=404, detail="Car not found")
+    return car
+# ------------------ DAY 1-2 (GET APIs) ------------------
+@app.get("/cars/{car_id}")
+def get_car(car_id: int):
+    car = find_car(car_id)
+    if not car:
+        raise HTTPException(status_code=404, detail="Car not found")
+    return car
